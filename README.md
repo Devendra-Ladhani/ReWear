@@ -64,3 +64,9 @@ The goal is to promote **sustainable fashion** and reduce **textile waste** by e
 - **Devendra Ladhani** – devladhani28@gmail.com *(Team Leader)*
 - **Ronak Kantariya** – ronakkantariya12@gmail.com
 - **Savan Chahuhan** – chahuhansavan4041@gmail.com
+
+---
+
+### Demo Video
+
+https://drive.google.com/file/d/1A0WVaVHflyGQFOUGJWXsCFH4-iDsi7v9/view?usp=drive_link

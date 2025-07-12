@@ -1,11 +1,11 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { RouterOutlet, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink],
+  imports: [CommonModule, RouterOutlet, RouterLink, CommonModule],
   template: `
     <div class="min-h-screen bg-gray-50">
       <nav class="bg-white shadow-sm border-b border-gray-200">
@@ -24,6 +24,8 @@ import { CommonModule } from '@angular/common';
               <a routerLink="/browse" class="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium">Browse Items</a>
               <a routerLink="/add-item" class="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium">List an Item</a>
               <a routerLink="/dashboard" class="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium">Dashboard</a>
+              <span *ngIf="isshow">
+              </span>
               <a routerLink="/login" class="btn-primary text-sm">Sign In</a>
             </div>
           </div>
@@ -44,6 +46,18 @@ import { CommonModule } from '@angular/common';
     </div>
   `
 })
-export class AppComponent {
+export class AppComponent implements OnInit{
   title = 'ReWear';
+  isshow:boolean = true;
+  currentUser:string = ""
+  
+  ngOnInit(): void {
+    this.currentUser = localStorage.getItem('isShow')!;
+    if(this.currentUser == 'true' || this.currentUser == "" || this.currentUser == undefined){
+      this.isshow = true
+    }else{
+      this.isshow = false;
+    }
+  }
+  
 }

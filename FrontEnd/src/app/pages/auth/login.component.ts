@@ -1,13 +1,13 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink],
   template: `
     <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div class="max-w-md w-full space-y-8">
@@ -28,7 +28,7 @@ import { AuthService } from '../../services/auth.service';
           </p>
         </div>
         
-        <form class="mt-8 space-y-6" (ngSubmit)="onSubmit()" #loginForm="ngForm">
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="mt-8 space-y-6">
           <div class="space-y-4">
             <div>
               <label for="email" class="block text-sm font-medium text-gray-700">
@@ -36,12 +36,14 @@ import { AuthService } from '../../services/auth.service';
               </label>
               <input
                 id="email"
-                name="email"
                 type="email"
-                [(ngModel)]="email"
-                required
+                formControlName="email"
                 class="input-field mt-1"
                 placeholder="Enter your email">
+              <div *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched" class="mt-1 text-sm text-red-600">
+                <span *ngIf="loginForm.get('email')?.errors?.['required']">Email is required</span>
+                <span *ngIf="loginForm.get('email')?.errors?.['email']">Please enter a valid email</span>
+              </div>
             </div>
             
             <div>
@@ -50,12 +52,13 @@ import { AuthService } from '../../services/auth.service';
               </label>
               <input
                 id="password"
-                name="password"
                 type="password"
-                [(ngModel)]="password"
-                required
+                formControlName="password"
                 class="input-field mt-1"
                 placeholder="Enter your password">
+              <div *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched" class="mt-1 text-sm text-red-600">
+                <span *ngIf="loginForm.get('password')?.errors?.['required']">Password is required</span>
+              </div>
             </div>
           </div>
 
@@ -63,9 +66,8 @@ import { AuthService } from '../../services/auth.service';
             <div class="flex items-center">
               <input
                 id="remember-me"
-                name="remember-me"
                 type="checkbox"
-                [(ngModel)]="rememberMe"
+                formControlName="rememberMe"
                 class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
               <label for="remember-me" class="ml-2 block text-sm text-gray-900">
                 Remember me
@@ -82,7 +84,7 @@ import { AuthService } from '../../services/auth.service';
           <div>
             <button
               type="submit"
-              [disabled]="!loginForm.form.valid || isLoading"
+              [disabled]="loginForm.invalid || isLoading"
               class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed">
               <span *ngIf="isLoading" class="absolute left-0 inset-y-0 flex items-center pl-3">
                 <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -126,30 +128,46 @@ import { AuthService } from '../../services/auth.service';
     </div>
   `
 })
-export class LoginComponent {
-  email: string = '';
-  password: string = '';
-  rememberMe: boolean = false;
-  isLoading: boolean = false;
+export class LoginComponent implements OnInit {
+  loginForm!: FormGroup;
+  isLoading: boolean = true;
   errorMessage: string = '';
+  isShow:boolean = false;
 
   constructor(
+    private fb: FormBuilder,
     private authService: AuthService,
     private router: Router
   ) {}
 
+  ngOnInit(): void {
+    this.initForm();
+  }
+
+  initForm(): void {
+    this.loginForm = this.fb.group({
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required]],
+      rememberMe: [false]
+    });
+  }
+
   onSubmit(): void {
-    if (!this.email || !this.password) {
-      this.errorMessage = 'Please fill in all fields';
+    if (this.loginForm.invalid) {
+      this.markFormGroupTouched();
       return;
     }
 
+    const { email, password } = this.loginForm.value;
+    
     this.isLoading = true;
     this.errorMessage = '';
 
-    this.authService.login(this.email, this.password).subscribe({
+    this.authService.login(email, password).subscribe({
       next: (response) => {
         this.isLoading = false;
+        // this.isShow = false;
+        // localStorage.setItem('isShow', JSON.stringify(this.isShow));
         this.router.navigate(['/dashboard']);
       },
       error: (error) => {
@@ -163,8 +181,18 @@ export class LoginComponent {
     const email = type === 'admin' ? 'admin@rewear.com' : 'user@rewear.com';
     const password = 'demo123';
     
-    this.email = email;
-    this.password = password;
+    this.loginForm.patchValue({
+      email: email,
+      password: password
+    });
+    
     this.onSubmit();
+  }
+
+  private markFormGroupTouched(): void {
+    Object.keys(this.loginForm.controls).forEach(key => {
+      const control = this.loginForm.get(key);
+      control?.markAsTouched();
+    });
   }
 } 
